@@ -26,6 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - Support for multiple resolutions in video editor
 - Support for photos (with editable time length)
 - Add video sections of rendered text
+- Fix ffmpeg.wasm complaining about how it does not support nodejs
 
 ## How it's built
 
