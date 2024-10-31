@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { VideoUploadComponent } from "@/components/video-upload";
 import { useState, useRef, useEffect } from "react";
 import VideoCard from "@/components/video-card";
@@ -8,48 +7,17 @@ import ExportButton from "@/components/export-button";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { DndContext, closestCenter } from "@dnd-kit/core";
+import { generateThumbnail } from "@/lib/utils";
 import {
   arrayMove,
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
 interface VideoFile {
   file: File;
   thumbnail: any;
-}
-
-interface SortableItemProps {
-  id: number;
-  thumbnail: string;
-  title: string;
-  onDelete: () => void;
-}
-
-function SortableItem({ id, thumbnail, title, onDelete }: SortableItemProps) {
-  // prop drilling... already? should prob move this to separate component
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="p-2"
-    >
-      <VideoCard imageUrl={thumbnail} title={title} onDelete={onDelete} />
-    </div>
-  );
 }
 
 export default function Home() {
@@ -68,6 +36,8 @@ export default function Home() {
   );
 
   useEffect(() => {
+    // if a user is on the page, they're likely to export a video
+    // we preload ffmpeg so that export is super snappy
     load();
   }, []);
 
@@ -89,33 +59,6 @@ export default function Home() {
     });
     setLoaded(true);
     setIsLoadingFFmpeg(false);
-  };
-
-  const generateThumbnail = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement("video");
-      video.src = URL.createObjectURL(file);
-      video.currentTime = 1; // Capture the thumbnail at 1 second into the video
-
-      video.onloadeddata = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext("2d");
-        if (context) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const thumbnail = canvas.toDataURL("image/png");
-          URL.revokeObjectURL(video.src); // Clean up the object URL
-          resolve(thumbnail);
-        } else {
-          reject("Failed to get canvas context");
-        }
-      };
-
-      video.onerror = () => {
-        reject("Failed to load video");
-      };
-    });
   };
 
   const addFile = async (file: File) => {
@@ -215,13 +158,13 @@ export default function Home() {
             strategy={verticalListSortingStrategy}
           >
             {selectedFiles.map(({ thumbnail, file }) => (
-              <SortableItem
+              <VideoCard
                 key={file.name}
                 id={file.name}
-                thumbnail={thumbnail}
+                imageUrl={thumbnail}
                 title={file.name}
                 onDelete={() => handleDelete(file)}
-                on
+                sortable={true}
               />
             ))}
           </SortableContext>
