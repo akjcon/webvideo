@@ -37,7 +37,7 @@ export function VideoUploadComponent({
 
   return (
     <div className="w-full max-w-md mx-auto space-y-4 flex flex-col items-center">
-      <div className="flex items-center space-x-2 justify-center">
+      <div className="flex items-center justify-center">
         <Input
           id="video-upload"
           type="file"
@@ -47,14 +47,10 @@ export function VideoUploadComponent({
           onChange={handleFileChange}
         />
         <Button onClick={handleButtonClick} className="w-full ml-0">
-          <Upload className="h-4 w-4" /> Choose Video
+          <Upload className="h-4 w-4" />{" "}
+          {selectedFile ? "Add Another Video" : "Add Video"}
         </Button>
       </div>
-      {selectedFile && (
-        <p className="text-sm text-muted-foreground text-center">
-          Selected file: {selectedFile.name}
-        </p>
-      )}
       {error && (
         <Alert variant="destructive" className="w-full text-center">
           <AlertCircle className="h-4 w-4 mx-auto" />
