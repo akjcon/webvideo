@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
 interface VideoFile {
   file: File;
@@ -25,9 +26,11 @@ interface SortableItemProps {
   id: number;
   thumbnail: string;
   title: string;
+  onDelete: () => void;
 }
 
-function SortableItem({ id, thumbnail, title }: SortableItemProps) {
+function SortableItem({ id, thumbnail, title, onDelete }: SortableItemProps) {
+  // prop drilling... already? should prob move this to separate component
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
 
@@ -44,7 +47,7 @@ function SortableItem({ id, thumbnail, title }: SortableItemProps) {
       {...listeners}
       className="p-2"
     >
-      <VideoCard imageUrl={thumbnail} title={title} />
+      <VideoCard imageUrl={thumbnail} title={title} onDelete={onDelete} />
     </div>
   );
 }
@@ -56,6 +59,13 @@ export default function Home() {
   const [isLoadingFFmpeg, setIsLoadingFFmpeg] = useState(false);
   const ffmpegRef = useRef(new FFmpeg());
   const messageRef = useRef<HTMLParagraphElement | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     load();
@@ -187,12 +197,18 @@ export default function Home() {
     }
   };
 
+  const handleDelete = (file: File) => {
+    console.log("deleting", file);
+    setSelectedFiles(selectedFiles.filter((item) => item.file !== file));
+  };
+
   return (
     <div className="bg-[#333] min-h-screen flex items-center justify-center font-[family-name:var(--font-geist-sans)] p-5">
       <div>
         <DndContext
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
+          sensors={sensors}
         >
           <SortableContext
             items={selectedFiles.map(({ file }) => file.name)}
@@ -204,6 +220,8 @@ export default function Home() {
                 id={file.name}
                 thumbnail={thumbnail}
                 title={file.name}
+                onDelete={() => handleDelete(file)}
+                on
               />
             ))}
           </SortableContext>
