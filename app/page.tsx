@@ -7,18 +7,54 @@ import VideoCard from "@/components/video-card";
 import ExportButton from "@/components/export-button";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface VideoFile {
   file: File;
   thumbnail: any;
 }
 
+interface SortableItemProps {
+  id: number;
+  thumbnail: string;
+  title: string;
+}
+
+function SortableItem({ id, thumbnail, title }: SortableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="p-2"
+    >
+      <VideoCard imageUrl={thumbnail} title={title} />
+    </div>
+  );
+}
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<VideoFile[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFFmpeg, setIsLoadingFFmpeg] = useState(false);
   const ffmpegRef = useRef(new FFmpeg());
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const messageRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
@@ -26,7 +62,7 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    setIsLoading(true);
+    setIsLoadingFFmpeg(true);
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = ffmpegRef.current;
     ffmpeg.on("log", ({ message }) => {
@@ -42,7 +78,7 @@ export default function Home() {
       ),
     });
     setLoaded(true);
-    setIsLoading(false);
+    setIsLoadingFFmpeg(false);
   };
 
   const generateThumbnail = (file: File): Promise<string> => {
@@ -86,6 +122,7 @@ export default function Home() {
   };
 
   const handleExport = async () => {
+    setIsLoading(true);
     if (!loaded) {
       console.error("FFmpeg is not loaded yet.");
       return;
@@ -133,25 +170,52 @@ export default function Home() {
 
     // Clean up
     URL.revokeObjectURL(videoUrl);
+    setIsLoading(false);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setSelectedFiles((items) => {
+        const oldIndex = items.findIndex(
+          (item) => item.file.name === active.id
+        );
+        const newIndex = items.findIndex((item) => item.file.name === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
   };
 
   return (
-    <div className="bg-[#333] min-h-screen flex items-center justify-center font-[family-name:var(--font-geist-sans)]">
+    <div className="bg-[#333] min-h-screen flex items-center justify-center font-[family-name:var(--font-geist-sans)] p-5">
       <div>
-        <div>
-          {selectedFiles.map(({ thumbnail, file }, index) => (
-            <div key={index} className="p-2">
-              <VideoCard key={index} imageUrl={thumbnail} title={file.name} />
-            </div>
-          ))}
-        </div>
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={selectedFiles.map(({ file }) => file.name)}
+            strategy={verticalListSortingStrategy}
+          >
+            {selectedFiles.map(({ thumbnail, file }) => (
+              <SortableItem
+                key={file.name}
+                id={file.name}
+                thumbnail={thumbnail}
+                title={file.name}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
         <div className="mt-10">
           <VideoUploadComponent addFile={addFile} />
         </div>
-        <div className="mt-2 flex items-center justify-center mx-auto">
+        <div className="mt-2 flex items-center justify-center mx-auto pb-5">
           <ExportButton
             onExport={handleExport}
             disabled={selectedFiles.length === 0}
+            loading={isLoading}
           />
         </div>
       </div>
