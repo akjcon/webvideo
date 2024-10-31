@@ -16,14 +16,16 @@ export function generateThumbnail(file: File): Promise<string> {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const thumbnail = canvas.toDataURL("image/png");
-        URL.revokeObjectURL(video.src); // Clean up the object URL
-        resolve(thumbnail);
-      } else {
-        reject("Failed to get canvas context");
-      }
+      setTimeout(() => {
+        if (context) {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnail = canvas.toDataURL("image/png");
+          URL.revokeObjectURL(video.src); // Clean up the object URL
+          resolve(thumbnail);
+        } else {
+          reject("Failed to get canvas context");
+        }
+      }, 100);
     };
 
     video.onerror = () => {
