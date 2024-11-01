@@ -105,8 +105,12 @@ export default function Home() {
       "0",
       "-i",
       "concat.txt",
-      "-c",
-      "copy",
+      "-c:v",
+      "libx264", // Video codec
+      "-crf",
+      "23", // Constant Rate Factor for quality (lower is better quality)
+      "-preset",
+      "ultrafast", // Preset for encoding speed vs. compression
       "output.mp4",
     ]);
 
