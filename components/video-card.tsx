@@ -33,9 +33,9 @@ const VideoCard: React.FC<VideoCardProps> = ({
       style={sortable ? style : undefined}
       {...(sortable ? attributes : {})}
       {...(sortable ? listeners : {})}
-      className="p-2"
+      className="p-2 w-full"
     >
-      <Card className="rounded-lg p-0 w-80">
+      <Card className="rounded-lg p-0 w-80 bg-white bg-opacity-80 border-0">
         <CardContent className="p-2 relative">
           <img
             src={imageUrl}
