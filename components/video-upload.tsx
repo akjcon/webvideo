@@ -22,14 +22,14 @@ export function VideoUploadComponent({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type === "video/mp4") {
+      if (file.type.startsWith("video/")) {
         setSelectedFile(file);
         setError(null);
         console.log("file", file);
         addFile(file);
       } else {
         setSelectedFile(null);
-        setError("Please select a valid .mp4 file.");
+        setError("Please select a valid video file.");
       }
     }
   };
@@ -40,7 +40,7 @@ export function VideoUploadComponent({
         <Input
           id="video-upload"
           type="file"
-          accept=".mp4,video/mp4"
+          accept="video/*"
           className="hidden"
           ref={fileInputRef}
           onChange={handleFileChange}

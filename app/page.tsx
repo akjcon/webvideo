@@ -15,6 +15,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface VideoFile {
   file: File;
@@ -147,22 +148,47 @@ export default function Home() {
     setSelectedFiles(selectedFiles.filter((item) => item.file !== file));
   };
 
+  const cards = Array.from({ length: 20 }, (_, i) => ({
+    id: i + 1,
+    title: `Card ${i + 1}`,
+    content: `This is the content for card ${i + 1}.`,
+  }));
+
   return (
-    <div className="bg-[#333] min-h-screen flex flex-col items-center justify-center font-[family-name:var(--font-geist-sans)] p-5">
-      <h2 className="text-3xl text-white text-opacity-80 mb-10 ">
-        Web Video Editor
-      </h2>
-      <p className="text-[#ccc] text-opacity-80 mb-2">
-        Add as many videos as you want.
-      </p>
-      <p className="text-[#ccc] text-opacity-80 mb-2">
-        Drag and drop videos to reorder them.
-      </p>
-      <p className="text-[#ccc] text-opacity-80 mb-6">
-        Export your video with a single click.
-      </p>
-      <div>
-        <div className="flex overflow-x-scroll overflow-y-hidden w-full max-w-full">
+    <>
+      <div className="min-h-screen bg-gray-100 p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Horizontal Scrolling Cards
+        </h1>
+        <div className="flex flex-col gap-6 overflow-x-auto pb-6">
+          <div className="flex gap-6 w-max">
+            {cards.map((card) => (
+              <Card key={card.id} className="w-80 flex-shrink-0 bg-white">
+                <CardHeader>
+                  <CardTitle>{card.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{card.content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="bg-[#333] min-h-screen flex flex-col items-center justify-center font-[family-name:var(--font-geist-sans)] p-5">
+        <h2 className="text-3xl text-white text-opacity-80 mb-10 ">
+          Web Video Editor
+        </h2>
+        <p className="text-[#ccc] text-opacity-80 mb-2">
+          Add as many videos as you want.
+        </p>
+        <p className="text-[#ccc] text-opacity-80 mb-2">
+          Drag and drop videos to reorder them.
+        </p>
+        <p className="text-[#ccc] text-opacity-80 mb-6">
+          Export your video with a single click.
+        </p>
+        <div className="flex flex-col gap-2 overflow-x-auto pb-6 w-full items-center justify-center">
           <DndContext
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
@@ -172,7 +198,7 @@ export default function Home() {
               items={selectedFiles.map(({ file }) => file.name)}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex space-x-2 w-full items-center">
+              <div className="flex gap-1 w-max items-center justify-center">
                 {selectedFiles.map(({ thumbnail, file }, index) => (
                   <React.Fragment key={file.name}>
                     <VideoCard
@@ -186,7 +212,7 @@ export default function Home() {
                       index < selectedFiles.length - 1 && (
                         <Separator
                           orientation="vertical"
-                          className="flex h-20 items-center space-x-4 text-sm text-opacity-40"
+                          className="flex h-20 items-center text-sm text-opacity-40"
                         />
                       )}
                   </React.Fragment>
@@ -211,6 +237,6 @@ export default function Home() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
