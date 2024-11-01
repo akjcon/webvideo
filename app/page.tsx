@@ -12,21 +12,19 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
-  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 import { Separator } from "@/components/ui/separator";
 
 interface VideoFile {
   file: File;
-  thumbnail: any;
+  thumbnail: string;
 }
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<VideoFile[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingFFmpeg, setIsLoadingFFmpeg] = useState(false);
   const ffmpegRef = useRef(new FFmpeg());
   const messageRef = useRef<HTMLParagraphElement | null>(null);
   const sensors = useSensors(
@@ -44,7 +42,6 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    setIsLoadingFFmpeg(true);
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = ffmpegRef.current;
     ffmpeg.on("log", ({ message }) => {
@@ -60,7 +57,6 @@ export default function Home() {
       ),
     });
     setLoaded(true);
-    setIsLoadingFFmpeg(false);
   };
 
   const addFile = async (file: File) => {
@@ -94,7 +90,7 @@ export default function Home() {
     }
 
     // Create a `concat.txt` file listing each input file, one per line
-    let concatFileContent = selectedFiles
+    const concatFileContent = selectedFiles
       .map((_, index) => `file 'input${index}.webm'`)
       .join("\n");
     await ffmpeg.writeFile("concat.txt", concatFileContent);
@@ -118,7 +114,7 @@ export default function Home() {
 
     const data = await ffmpeg.readFile("output.mp4");
     const videoUrl = URL.createObjectURL(
-      new Blob([data.buffer], { type: "video/mp4" })
+      new Blob([data], { type: "video/mp4" })
     );
 
     // Trigger download
@@ -132,7 +128,7 @@ export default function Home() {
     setIsLoading(false);
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
